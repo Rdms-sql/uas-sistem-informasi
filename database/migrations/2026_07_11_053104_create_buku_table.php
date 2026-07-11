@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('buku', function (Blueprint $table) {
+            $table->id('id_buku');
+            $table->string('cover', 255);
+            $table->string('judul', 150);
+            $table->string('penulis', 100);
+            $table->year('tahun_terbit');
+            $table->integer('stok');
+            $table->unsignedBigInteger('id_kategori');
+
+            $table->foreign('id_kategori', 'fk_buku_kategori')
+                ->references('id_kategori')->on('kategori')
+                ->onDelete('restrict')->onUpdate('cascade');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('buku');
+    }
+};
