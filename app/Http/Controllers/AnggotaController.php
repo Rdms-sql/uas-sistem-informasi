@@ -2,63 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Anggota;
+use App\Http\Requests\StoreAnggotaRequest;
+use App\Http\Requests\UpdateAnggotaRequest;
 
 class AnggotaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $anggota = Anggota::orderBy('nama')->get();
+        return view('anggota.index', compact('anggota'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('anggota.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreAnggotaRequest $request)
     {
-        //
+        Anggota::create($request->validated());
+        return redirect()->route('anggota.index')->with('success', 'Anggota berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(Anggota $anggotum)
     {
-        //
+        return view('anggota.edit', ['anggota' => $anggotum]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(UpdateAnggotaRequest $request, Anggota $anggotum)
     {
-        //
+        $anggotum->update($request->validated());
+        return redirect()->route('anggota.index')->with('success', 'Anggota berhasil diperbarui.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Anggota $anggotum)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        try {
+            $anggotum->delete();
+            return redirect()->route('anggota.index')->with('success', 'Anggota berhasil dihapus.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('anggota.index')->with('error', 'Anggota tidak bisa dihapus karena masih memiliki riwayat peminjaman.');
+        }
     }
 }

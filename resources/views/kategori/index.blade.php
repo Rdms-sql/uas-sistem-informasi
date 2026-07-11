@@ -8,9 +8,22 @@
     <a href="{{ route('kategori.create') }}" class="btn btn-primary">Tambah Kategori</a>
 </div>
 
+@if (session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+@endif
 @if (session('error'))
     <div class="alert alert-danger">{{ session('error') }}</div>
 @endif
+
+<form method="GET" action="{{ route('kategori.index') }}" class="mb-3">
+    <div class="input-group" style="max-width: 350px;">
+        <input type="text" name="cari" class="form-control" placeholder="Cari nama kategori..." value="{{ request('cari') }}">
+        <button type="submit" class="btn btn-outline-secondary">Cari</button>
+        @if (request('cari'))
+            <a href="{{ route('kategori.index') }}" class="btn btn-outline-danger">Reset</a>
+        @endif
+    </div>
+</form>
 
 <table class="table table-bordered bg-white">
     <thead>

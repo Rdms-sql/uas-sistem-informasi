@@ -2,63 +2,57 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Pengembalian;
+use App\Models\Peminjaman;
+use App\Http\Requests\StorePengembalianRequest;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PengembalianController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $pengembalian = Pengembalian::with('peminjaman.anggota')->orderByDesc('id_pengembalian')->get();
+        return view('pengembalian.index', compact('pengembalian'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $peminjaman = Peminjaman::with('anggota')
+            ->whereDoesntHave('pengembalian')
+            ->orderByDesc('id_peminjaman')
+            ->get();
+
+        return view('pengembalian.create', compact('peminjaman'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StorePengembalianRequest $request)
     {
-        //
-    }
+        DB::transaction(function () use ($request) {
+            $peminjaman = Peminjaman::with('detailPeminjaman')->findOrFail($request->id_peminjaman);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+            $tanggalKembaliSeharusnya = Carbon::parse($peminjaman->tanggal_kembali);
+            $tanggalDikembalikan = Carbon::parse($request->tanggal_dikembalikan);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+            $telat = $tanggalDikembalikan->gt($tanggalKembaliSeharusnya)
+                ? $tanggalKembaliSeharusnya->diffInDays($tanggalDikembalikan)
+                : 0;
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+            $denda = $telat * config('perpustakaan.denda_per_hari');
+            $status = $telat > 0 ? 'Terlambat' : 'Tepat Waktu';
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            Pengembalian::create([
+                'id_peminjaman' => $peminjaman->id_peminjaman,
+                'tanggal_dikembalikan' => $request->tanggal_dikembalikan,
+                'denda' => $denda,
+                'status' => $status,
+            ]);
+
+            foreach ($peminjaman->detailPeminjaman as $detail) {
+                $detail->buku->increment('stok', $detail->jumlah);
+            }
+        });
+
+        return redirect()->route('pengembalian.index')->with('success', 'Pengembalian berhasil dicatat.');
     }
 }

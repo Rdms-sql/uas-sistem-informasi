@@ -2,63 +2,73 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Buku;
+use App\Models\Kategori;
+use App\Http\Requests\StoreBukuRequest;
+use App\Http\Requests\UpdateBukuRequest;
+use Illuminate\Support\Facades\Storage;
 
 class BukuController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $buku = Buku::with('kategori')->orderBy('judul')->get();
+        return view('buku.index', compact('buku'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $kategori = Kategori::orderBy('nama_kategori')->get();
+        return view('buku.create', compact('kategori'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreBukuRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        if ($request->hasFile('cover')) {
+            $data['cover'] = $request->file('cover')->store('cover-buku', 'public');
+        } else {
+            $data['cover'] = 'cover-buku/default.png';
+        }
+
+        Buku::create($data);
+        return redirect()->route('buku.index')->with('success', 'Buku berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(Buku $buku)
     {
-        //
+        $kategori = Kategori::orderBy('nama_kategori')->get();
+        return view('buku.edit', compact('buku', 'kategori'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(UpdateBukuRequest $request, Buku $buku)
     {
-        //
+        $data = $request->validated();
+
+        if ($request->hasFile('cover')) {
+            if ($buku->cover && $buku->cover !== 'cover-buku/default.png') {
+                Storage::disk('public')->delete($buku->cover);
+            }
+            $data['cover'] = $request->file('cover')->store('cover-buku', 'public');
+        } else {
+            unset($data['cover']);
+        }
+
+        $buku->update($data);
+        return redirect()->route('buku.index')->with('success', 'Buku berhasil diperbarui.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Buku $buku)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        try {
+            if ($buku->cover && $buku->cover !== 'cover-buku/default.png') {
+                Storage::disk('public')->delete($buku->cover);
+            }
+            $buku->delete();
+            return redirect()->route('buku.index')->with('success', 'Buku berhasil dihapus.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('buku.index')->with('error', 'Buku tidak bisa dihapus karena masih ada riwayat peminjaman.');
+        }
     }
 }

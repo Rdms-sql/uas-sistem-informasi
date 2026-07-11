@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kategori;
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreKategoriRequest;
 use App\Http\Requests\UpdateKategoriRequest;
 
 class KategoriController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $kategori = Kategori::orderBy('nama_kategori')->get();
+        $kategori = Kategori::when($request->cari, function ($query, $cari) {
+            $query->where('nama_kategori', 'like', '%' . $cari . '%');
+        })->orderBy('nama_kategori')->get();
+    
         return view('kategori.index', compact('kategori'));
     }
 

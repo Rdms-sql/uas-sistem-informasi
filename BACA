@@ -1,13 +1,49 @@
-# Perpustakaan UAS
+# Panduan Kontribusi - Perpustakaan UAS
 
-## Setup
+## Setup Awal
 1. `composer install`
 2. `npm install`
-3. Copy `.env.example` ke `.env`, sesuaikan DB
+3. Copy `.env.example` ke `.env`, sesuaikan konfigurasi database
 4. `php artisan key:generate`
-5. `php artisan migrate:fresh --seed`
-6. `php artisan serve`
+5. `php artisan storage:link`
+6. `php artisan migrate:fresh --seed`
+7. `php artisan serve`
 
-## Login default
-- Username: admin
-- Password: admin123
+## Login Default
+- Username: `admin`
+- Password: `admin123`
+
+## Alur Kerja Git
+1. `git checkout main && git pull origin main`
+2. `git checkout -b fitur-nama-modul`
+3. Commit rutin per progres kecil, jangan ditumpuk di akhir
+4. `git push -u origin fitur-nama-modul`
+5. Buat Pull Request di GitHub, tunggu direview & di-merge oleh Person 1
+
+## Sistem Warna Kategori
+- Warna kategori disimpan sebagai hex code (`#RRGGBB`), jangan diketik manual — pakai color picker (`<input type="color">`) yang sudah ada di form kategori
+- Untuk menampilkan badge kategori di halaman manapun, gunakan component yang sudah tersedia:
+```blade
+  <x-badge-kategori :nama="$kategori->nama_kategori" :warna="$kategori->warna" />
+```
+- Jangan bikin cara render warna sendiri di luar component ini, supaya tampilan tetap konsisten di semua modul
+
+## Struktur Cover Buku
+- Cover buku disimpan di `storage/app/public/cover-buku/`
+- Kalau buku tidak diupload cover, otomatis pakai `cover-buku/default.png`
+- Pastikan `php artisan storage:link` sudah dijalankan di device masing-masing, kalau tidak gambar tidak akan muncul
+
+## Pembagian Modul
+- **Person 1**: Fondasi (auth, layout, routing, migration, seeder) - DONE
+- **Person 2**: Kategori (DONE)
+- **Person 3**: Buku
+- **Person 4**: Anggota & Peminjaman
+- **Person 5**: Pengembalian & Dashboard
+
+## Aturan Denda Peminjaman
+- Lama pinjam: 7 hari (otomatis terhitung dari tanggal pinjam)
+- Denda: Rp 2.000 per hari keterlambatan
+- Konfigurasi ada di `config/perpustakaan.php`, jangan hardcode angka di controller manapun
+
+## Catatan Route Anggota
+Karena Laravel otomatis menyingularkan kata "anggota" menjadi "anggotum" untuk parameter resource route, jangan bingung kalau melihat `{anggotum}` di `route:list` — itu bukan typo, cukup ikuti pola yang sudah ada di `AnggotaController.php`.
