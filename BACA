@@ -1,0 +1,13 @@
+# Perpustakaan UAS
+
+## Setup
+1. `composer install`
+2. `npm install`
+3. Copy `.env.example` ke `.env`, sesuaikan DB
+4. `php artisan key:generate`
+5. `php artisan migrate:fresh --seed`
+6. `php artisan serve`
+
+## Login default
+- Username: admin
+- Password: admin123
