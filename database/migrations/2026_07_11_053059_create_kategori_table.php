@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('kategori', function (Blueprint $table) {
             $table->id('id_kategori');
-            $table->string('warna', 20);
+            $table->string('warna', 20)->unique();
             $table->string('nama_kategori', 100);
         });
     }
