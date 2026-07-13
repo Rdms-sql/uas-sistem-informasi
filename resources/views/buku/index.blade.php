@@ -8,9 +8,36 @@
     <a href="{{ route('buku.create') }}" class="btn btn-primary">Tambah Buku</a>
 </div>
 
+@if (session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+@endif
 @if (session('error'))
     <div class="alert alert-danger">{{ session('error') }}</div>
 @endif
+
+<form method="GET" action="{{ route('buku.index') }}" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input type="text" name="cari" class="form-control" placeholder="Cari judul atau penulis..." value="{{ request('cari') }}">
+    </div>
+    <div class="col-md-4">
+        <select name="kategori" class="form-select">
+            <option value="">-- Semua Kategori --</option>
+            @foreach ($kategori as $k)
+                <option value="{{ $k->id_kategori }}" {{ request('kategori') == $k->id_kategori ? 'selected' : '' }}>
+                    {{ $k->nama_kategori }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-outline-secondary w-100">Filter</button>
+    </div>
+    @if (request('cari') || request('kategori'))
+    <div class="col-12">
+        <a href="{{ route('buku.index') }}" class="btn btn-sm btn-outline-danger">Reset Filter</a>
+    </div>
+    @endif
+</form>
 
 <div class="row g-3">
     @forelse ($buku as $item)
@@ -32,7 +59,7 @@
         </div>
     </div>
     @empty
-    <p class="text-center">Belum ada buku.</p>
+    <p class="text-center">Tidak ada buku yang cocok.</p>
     @endforelse
 </div>
 @endsection

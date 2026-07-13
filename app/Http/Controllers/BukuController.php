@@ -6,14 +6,27 @@ use App\Models\Buku;
 use App\Models\Kategori;
 use App\Http\Requests\StoreBukuRequest;
 use App\Http\Requests\UpdateBukuRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class BukuController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $buku = Buku::with('kategori')->orderBy('judul')->get();
-        return view('buku.index', compact('buku'));
+        $buku = Buku::with('kategori')
+            ->when($request->cari, function ($query, $cari) {
+                $query->where('judul', 'like', '%' . $cari . '%')
+                      ->orWhere('penulis', 'like', '%' . $cari . '%');
+            })
+            ->when($request->kategori, function ($query, $kategoriId) {
+                $query->where('id_kategori', $kategoriId);
+            })
+            ->orderBy('judul')
+            ->get();
+
+        $kategori = Kategori::orderBy('nama_kategori')->get();
+
+        return view('buku.index', compact('buku', 'kategori'));
     }
 
     public function create()
